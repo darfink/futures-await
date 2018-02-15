@@ -196,7 +196,7 @@ where F: FnOnce(&Type) -> proc_macro2::TokenStream
     let output_span = first_last(&output);
     let gen_function = respan(gen_function.into(), &output_span);
     let body_inner = quote_cs! {
-        #gen_function (move || -> #output #gen_body)
+        #gen_function (unsafe{static move || -> #output #gen_body})
     };
     let body_inner = if boxed {
         let body = quote_cs! { ::futures::__rt::std::boxed::Box::new(#body_inner) };
