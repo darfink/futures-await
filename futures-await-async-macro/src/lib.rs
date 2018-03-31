@@ -338,14 +338,20 @@ pub fn async_block(input: TokenStream) -> TokenStream {
     // that we get the `call_site` span instead of the default span.
     let span = Span::call_site();
     syn::token::Paren(span).surround(&mut tokens, |tokens| {
-        syn::token::Move(span).to_tokens(tokens);
-        syn::token::OrOr([span, span]).to_tokens(tokens);
+        syn::token::Unsafe(span).to_tokens(tokens);
         syn::token::Brace(span).surround(tokens, |tokens| {
-            (quote_cs! {
-                if false { yield ::futures::Async::NotReady }
-            }).to_tokens(tokens);
-            expr.to_tokens(tokens);
+            syn::token::Static(span).to_tokens(tokens);
+            syn::token::Move(span).to_tokens(tokens);
+            syn::token::OrOr([span, span]).to_tokens(tokens);
+            syn::token::Brace(span).surround(tokens, |tokens| {
+                (quote_cs! {
+                    if false { yield ::futures::Async::NotReady }
+                }).to_tokens(tokens);
+                expr.to_tokens(tokens);
+            });
         });
+
+
     });
 
     tokens.into()
