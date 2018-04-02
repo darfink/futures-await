@@ -27,6 +27,24 @@ macro_rules! await {
     })
 }
 
+#[macro_export]
+macro_rules! async_block {
+    ($e:expr) => {
+        ::futures::__rt::gen(unsafe {
+                    static move || {
+                        if false {
+                            yield ::futures::Async::NotReady
+                        }
+                        {
+                        $e
+                        }
+                    }
+                }
+                )
+    }
+
+}
+
 ///
 /// Await an item from the stream
 /// Basically it does same as `await` macro, but for streams

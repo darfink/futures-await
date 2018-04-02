@@ -320,42 +320,8 @@ pub fn async_stream(attribute: TokenStream, function: TokenStream) -> TokenStrea
     })
 }
 
-#[proc_macro]
-pub fn async_block(input: TokenStream) -> TokenStream {
-    let input = TokenStream::from(TokenTree {
-        kind: TokenNode::Group(Delimiter::Brace, input),
-        span: proc_macro::Span::def_site(),
-    });
-    let expr = syn::parse(input)
-        .expect("failed to parse tokens as an expression");
-    let expr = ExpandAsyncFor.fold_expr(expr);
-
-    let mut tokens = quote_cs! {
-        ::futures::__rt::gen
-    };
-
-    // Use some manual token construction here instead of `quote_cs!` to ensure
-    // that we get the `call_site` span instead of the default span.
-    let span = Span::call_site();
-    syn::token::Paren(span).surround(&mut tokens, |tokens| {
-        syn::token::Unsafe(span).to_tokens(tokens);
-        syn::token::Brace(span).surround(tokens, |tokens| {
-            syn::token::Static(span).to_tokens(tokens);
-            syn::token::Move(span).to_tokens(tokens);
-            syn::token::OrOr([span, span]).to_tokens(tokens);
-            syn::token::Brace(span).surround(tokens, |tokens| {
-                (quote_cs! {
-                    if false { yield ::futures::Async::NotReady }
-                }).to_tokens(tokens);
-                expr.to_tokens(tokens);
-            });
-        });
 
 
-    });
-
-    tokens.into()
-}
 
 #[proc_macro]
 pub fn async_stream_block(input: TokenStream) -> TokenStream {
